@@ -1,6 +1,6 @@
 # LeetGPU CUDA Solutions
 
-Included in [RawTorch](https://github.com/bozo10n/RawTorch). Original repository:
+Included in [RawTorch](https://github.com/PavelAugustt/RawTorch). Original repository:
 https://github.com/PavelAugustt/LeetGPU-Sols
 
 A collection of CUDA kernel implementations and optimization experiments

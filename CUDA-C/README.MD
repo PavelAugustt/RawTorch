@@ -1,6 +1,6 @@
 # CUDA-C
 
-Included in [RawTorch](https://github.com/bozo10n/RawTorch). Original repository:
+Included in [RawTorch](https://github.com/PavelAugustt/RawTorch). Original repository:
 https://github.com/PavelAugustt/CUDA-C
 
 A collection of CUDA C experiments documenting my hands-on study of GPU
