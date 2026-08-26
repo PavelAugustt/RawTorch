@@ -1,0 +1,4 @@
+
+use "nvcc -o cuda_test cuda_test.cu -arch=sm_86"
+
+-arch=sm_86 optimizes for your gpu architecture
