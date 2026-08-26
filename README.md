@@ -12,10 +12,16 @@ how those ops run on the GPU.
 
 Libraries like PyTorch hide tensors, autograd, and GPU execution behind a
 single API. This project separates those layers so each can be inspected
-directly:
+directly. 
+
+My progression:
 
 ```
 Framework   Tensor → graph → gradients → layers → training
+```
+
+After training I jumped to GPU programming:
+```
 GPU         Numerical ops → CUDA kernels → memory access
 ```
 
