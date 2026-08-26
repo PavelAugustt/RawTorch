@@ -1,21 +1,22 @@
 # RawTorch
 
-RawTorch is how I learned deep-learning systems from the inside: a small
-NumPy tensor / autograd library, then CUDA kernels for the numerical
-operations those abstractions sit on.
+RawTorch is a from-scratch study of deep learning systems: a NumPy-based
+tensor library with reverse-mode automatic differentiation, paired with CUDA
+kernels for the numerical operations underneath those abstractions.
 
-The CUDA work lives next to the framework rather than as a Tensor execution
-backend. Same learning goal, one layer down: how ML math maps onto GPU
-execution.
+The CUDA components are standalone experiments, not a Tensor execution
+backend. They sit alongside the framework to connect high-level ML ops with
+how those ops run on the GPU.
 
 ## Why I Built This
 
-PyTorch makes tensors, gradients, and GPU execution look like one API. I
-wanted to see what that stack actually is.
+Libraries like PyTorch hide tensors, autograd, and GPU execution behind a
+single API. This project separates those layers so each can be inspected
+directly:
 
 ```
-framework    tensor → graph → gradients → layers → training
-GPU          numerical ops → CUDA kernels → memory access
+Framework   Tensor → graph → gradients → layers → training
+GPU         Numerical ops → CUDA kernels → memory access
 ```
 
 ## Project Map
