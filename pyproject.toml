@@ -1,17 +1,17 @@
 [tool.poetry]
 name = "tentorch"
 version = "0.1.0"
-description = "A custom PyTorch alternative with advanced features."
+description = "Educational NumPy tensor + reverse-mode autograd study (not a PyTorch replacement)."
 authors = [""]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"  # Specify your Python version
-numpy = "^1.21"   # Example dependency, add others as needed
+python = "^3.8"
+numpy = "^1.21"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.0"   # Development dependencies for testing
+pytest = "^6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

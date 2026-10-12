@@ -1,61 +1,53 @@
 # CUDA-C
 
-Included in [RawTorch](https://github.com/PavelAugustt/RawTorch). Original repository:
-https://github.com/PavelAugustt/CUDA-C
+CUDA C experiments written while learning GPU programming: execution model,
+memory behavior, reductions, and matrix multiplication.
 
-A collection of CUDA C experiments documenting my hands-on study of GPU
-programming, parallel algorithms, memory behavior, and matrix computation.
+Educational / exploratory — standalone programs with CPU checks where useful,
+not a packaged kernel library.
 
-This repository is intentionally exploratory. It contains implementations I
-wrote and repeatedly rebuilt while learning CUDA fundamentals and experimenting
-with different approaches to correctness and performance.
+## Highlights
 
-## Topics Explored
+| Folder | Contents |
+|---|---|
+| `Hello-GPU`, `DeviceProp-GPU` | First kernel launch, device limits |
+| `Parallel-VS-GPU` | Indexing, multi-block launches, grid-stride loops |
+| `SharedMemory-GPU` | Shared-memory dot product / tree reduction |
+| `Transpose-2D-GPU` | 2D matrix transpose |
+| `GEMM-GPU/_gemm.cu` | Naive GEMM with CPU verification |
+| `GEMM-GPU/_gemm_tiled.cu` | Shared-memory tiled GEMM + `cudaEvent` timing |
+| `Profiling-GPU` | Early timing notes on two naive GEMM launch styles |
 
-### CUDA execution fundamentals
+Other folders (`Repetition-GPU`, older variants) are practice rewrites kept for
+reference.
+
+## Topics
+
 - Thread, block, and grid organization
-- Global thread indexing
-- Grid-stride loops
-- Device memory allocation and transfers
+- Grid-stride loops for arbitrary problem sizes
+- Device allocation and host/device transfers
+- Shared-memory reductions and `__syncthreads` placement
+- Naive and tiled GEMM
+- Basic kernel timing with warmup and averaged `cudaEvent` runs
 
-### Parallel operations
-- Vector addition
-- Vector dot product
-- Shared-memory reduction
-- Thread divergence and branching behavior
+## Build
 
-### Matrix operations
-- CPU and GPU matrix transpose
-- Row-major and column-major indexing
-- Naive GEMM
-- GEMM for square and non-square matrices
-- Repeated GEMM implementations to reinforce indexing and execution mechanics
+```bash
+nvcc -o shared SharedMemory-GPU/main.cu
+nvcc -o gemm GEMM-GPU/_gemm.cu
+nvcc -o gemm_tiled GEMM-GPU/_gemm_tiled.cu
+```
 
-### Performance experimentation
-- Shared memory
-- Reduction techniques
-- Memory access patterns
-- Kernel launch configuration
-- Profiling CUDA implementations
-- Comparing alternative stride-loop implementations
-- Experiments with GEMM scaling and performance
+Optional: set `-arch` for your GPU (see `compilationCMD.txt`).
 
-## Related Work
+## Related work
 
-### RawTorch
-A small deep-learning framework built from scratch to explore tensors,
-automatic differentiation, neural-network layers, and the connection between
-framework-level operations and lower-level numerical computation.
+- Compact kernels + videos: https://github.com/PavelAugustt/LeetGPU-Sols
+- Tensor / autograd study: https://github.com/PavelAugustt/RawTorch
+- YouTube: https://www.youtube.com/@pavelaugust
 
-https://github.com/PavelAugustt/RawTorch
+## Status
 
-### LeetGPU Solutions
-Smaller CUDA kernel exercises including memory-coalesced transpose and
-element-wise activation kernels.
-
-https://github.com/PavelAugustt/LeetGPU-Sols
-
-### Video Explanations
-I make technical explanations of several GPU concepts and implementations:
-
-https://www.youtube.com/@pavelaugust
+Covered: fundamentals through tiled GEMM and simple timing.
+Next experiments of interest: cuBLAS baselines, deeper Nsight use, and wiring
+a kernel into RawTorch via pybind — not claimed as done here.

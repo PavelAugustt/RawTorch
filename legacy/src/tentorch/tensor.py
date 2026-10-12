@@ -15,20 +15,31 @@ class Tensor:
         return f"Tensor({self.data})"
     
     def backward(self):
+        """Reverse-mode AD via a topological walk (micrograd-style).
+
+        Build children-before-parents order, then apply local _backward
+        closures from the output toward the leaves so every grad is ready
+        before parents consume it.
+        """
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
-        queue = [self]
+        topo = []
         visited = set()
-        while queue:
-            current_tensor = queue.pop()
-            if current_tensor in visited:
-                visited.add(current_tensor)
 
-            if current_tensor._backward:
-                current_tensor._backward()
+        def build_topo(tensor):
+            if id(tensor) in visited:
+                return
+            visited.add(id(tensor))
+            for parent in tensor._prev:
+                build_topo(parent)
+            topo.append(tensor)
 
-            queue.extend(current_tensor._prev)       
+        build_topo(self)
+
+        for tensor in reversed(topo):
+            if tensor._backward:
+                tensor._backward()
 
     def _visualize_graph(self):
         def recurse(tensor, visited=None, indent=0, prefix=""):

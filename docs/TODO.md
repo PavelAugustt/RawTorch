@@ -1,22 +1,19 @@
-For now I'll be focusing purely on linear algebra, matrix multiplication, dot products all that stuff with shapes and what not, + optimizing those iteratively. i feel like getting better at parallel optimization should be the goal here, in other words this is for me to learn. the ml jargon can come later. this is a computational library for now until im not lazy
+# Project notes
 
-TODO
-- AutoGrad with DAG. Each node is a tensor and edge a operation. Tracks every operation with requires_grad and backprop just performs chain rule (Have to implement this for layers and all tensor operations but setups done with POC)
-- Layers Linear, with forward __call__ function (some what started)
-- Cost Functions and optimizers
-- More Layers like Conv2D, LSTM, RNN, Sequential, GRU, Embedding, Extend it for Graph neural nets, Liquid Neural Nets, HSTU
-- custom cuda kernels for parallel processing
-- mix of experts in layers
-- state space models
-- world models
-- Add JAX-style function transformations (vmap, grad)
-- Support dynamic computational graphs like PyTorch 2.0
+Educational systems study — not a PyTorch replacement.
 
-FUTURE GOALS
-- Reinforcement learning parallel training/hybrid training 
-- adaptive exploration trat
-- custom CUDA kernels for rl
-- transfer learning
-- environment wrappers
-- visualization tools 
-- customaziable rl building blocks
+## Done
+- Tensor + reverse-mode autograd (NumPy)
+- Linear, activations, MSE, XOR demo
+- Standalone CUDA fundamentals (CUDA-C / LeetGPU-Sols)
+- Tiled GEMM, coalesced transpose, softmax kernels
+
+## Next
+- Local timing tables (naive vs tiled / coalesced)
+- Optional: pybind one CUDA kernel for a thin Python wrapper
+- More autograd tests (broadcast, matmul shapes)
+
+## Out of scope for now
+- MoE, world models, HSTU, full RL stacks
+- Matching PyTorch / JAX feature sets
+- Production kernel stacks (cuBLAS / CUTLASS / Tensor Cores)

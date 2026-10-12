@@ -1,115 +1,92 @@
-#include <iostream>
-# define count 1024
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cuda_runtime.h>
 
-__global__ void gemmGPU(int *a, int *b, int *c, int M, int N, int K)
-{
-    for(int row = threadIdx.x + blockIdx.x * blockDim.x; row < M; row += blockDim.x * gridDim.x)
-    {
-        for(int col = threadIdx.y + blockIdx.y * blockDim.y; col < N; col += blockDim.y * gridDim.y)
-        {
-            for(int k = 0; k < K; k++)
-            {
-                c[ row * N + col ] += a[row * K + k] * b[k * N + col];
+#define N 256
+
+/*
+ * Naive square GEMM with a CPU golden check.
+ *
+ * Important correctness detail: C must start at zero before `+=` accumulation
+ * on both CPU and GPU. Forgetting cudaMemset on device C is a classic bug.
+ *
+ * This is intentionally naive (global-memory K loop). For tiled shared-memory
+ * GEMM, see the sibling LeetGPU-Sols repo: Mat-Mult/tiled_impl.cu
+ */
+
+__global__ void gemmGPU(const int* a, const int* b, int* c, int n) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < n && col < n) {
+        int sum = 0;
+        for (int k = 0; k < n; ++k) {
+            sum += a[row * n + k] * b[k * n + col];
+        }
+        c[row * n + col] = sum;
+    }
+}
+
+void gemmCPU(const int* a, const int* b, int* c, int n) {
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            int sum = 0;
+            for (int k = 0; k < n; ++k) {
+                sum += a[i * n + k] * b[k * n + j];
             }
-            
-        }
-    }
-}
-void printMatrix(int *a, int rows, int cols)
-{
-    for(int i = 0; i < rows; i++)
-    {
-        for(int j = 0; j < cols; j++)
-        {
-            printf(" %d ", a[i * cols + j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
-void gemmCPU(int *a, int *b, int *c, int X, int Y, int Z)
-{
-    for(int i = 0; i < X; i++)
-    {
-        for(int j = 0; j < Y; j++)
-        {
-            for(int k = 0; k < Z; k++)
-            {
-                c[i * Y + j] += a[i * Z + k] * b[k * Y + j];
-            }
+            c[i * n + j] = sum;
         }
     }
 }
 
-int main(void)
-{
-    int *a, *b, *c;
+int main() {
+    size_t bytes = static_cast<size_t>(N) * N * sizeof(int);
 
-    size_t size = count * count * sizeof(int);
+    int* a = static_cast<int*>(malloc(bytes));
+    int* b = static_cast<int*>(malloc(bytes));
+    int* c_cpu = static_cast<int*>(malloc(bytes));
+    int* c_gpu = static_cast<int*>(malloc(bytes));
 
-    a = (int*)malloc(size);
-    b = (int*)malloc(size);
-    c = (int*)malloc(size);
-    
-    for(int i = 0; i < count * count; i++)
-    {
-        a[i] = i;
-        b[i] = i;
+    for (int i = 0; i < N * N; ++i) {
+        a[i] = (i % 7) + 1;
+        b[i] = (i % 5) + 1;
     }
 
- 
+    gemmCPU(a, b, c_cpu, N);
 
-    gemmCPU(a, b, c, count, count, count);
+    int *d_a = nullptr, *d_b = nullptr, *d_c = nullptr;
+    cudaMalloc(&d_a, bytes);
+    cudaMalloc(&d_b, bytes);
+    cudaMalloc(&d_c, bytes);
 
+    cudaMemcpy(d_a, a, bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, b, bytes, cudaMemcpyHostToDevice);
+    cudaMemset(d_c, 0, bytes);
 
+    dim3 block(16, 16);
+    dim3 grid((N + 15) / 16, (N + 15) / 16);
+    gemmGPU<<<grid, block>>>(d_a, d_b, d_c, N);
+    cudaDeviceSynchronize();
 
-    int *d;
+    cudaMemcpy(c_gpu, d_c, bytes, cudaMemcpyDeviceToHost);
 
-    d = (int*)malloc(size);
-
-    int *d_a, *d_b, *d_c;
-
-    cudaMalloc((void**)&d_a, size);
-    cudaMalloc((void**)&d_b, size);
-    cudaMalloc((void**)&d_c, size);
-
-    cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
-
-    dim3 blockDim(16, 16);
-
-    dim3 gridDim((count+15)/16, (count+15)/16);
-    gemmGPU<<<gridDim, blockDim>>>(d_a, d_b, d_c, count, count, count);
-
-    cudaMemcpy(d, d_c, size, cudaMemcpyDeviceToHost);
-
-    int i = 0;
-
-    while( i < count * count)
-    {
-        if(c[i] == d[i])
-        {
-            i++;
-            continue;
+    bool ok = true;
+    for (int i = 0; i < N * N; ++i) {
+        if (c_cpu[i] != c_gpu[i]) {
+            ok = false;
+            break;
         }
-        else
-        {
-            printf("not equal\n");
-            return 0;
-        }
-        i++;
     }
+
+    printf("%s\n", ok ? "equal" : "not equal");
 
     free(a);
     free(b);
-    free(c);
-
+    free(c_cpu);
+    free(c_gpu);
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
-
-    free(d);
-    printf("equal\n");
-    return 0;
+    return ok ? 0 : 1;
 }
